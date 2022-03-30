@@ -19,16 +19,23 @@ package v1beta1
 import (
 	"testing"
 
-	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	utilfeature "k8s.io/component-base/featuregate/testing"
 	"k8s.io/utils/pointer"
 
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	"sigs.k8s.io/cluster-api/feature"
 	utildefaulting "sigs.k8s.io/cluster-api/util/defaulting"
+
+	. "github.com/onsi/gomega"
 )
 
 func TestMachinePoolDefault(t *testing.T) {
+	// NOTE: MachinePool feature flag is disabled by default, thus preventing to create or update MachinePool.
+	// Enabling the feature flag temporarily for this test.
+	defer utilfeature.SetFeatureGateDuringTest(t, feature.Gates, feature.MachinePool, true)()
+
 	g := NewWithT(t)
 
 	m := &MachinePool{
@@ -54,6 +61,9 @@ func TestMachinePoolDefault(t *testing.T) {
 }
 
 func TestMachinePoolBootstrapValidation(t *testing.T) {
+	// NOTE: MachinePool feature flag is disabled by default, thus preventing to create or update MachinePool.
+	// Enabling the feature flag temporarily for this test.
+	defer utilfeature.SetFeatureGateDuringTest(t, feature.Gates, feature.MachinePool, true)()
 	tests := []struct {
 		name      string
 		bootstrap clusterv1.Bootstrap
@@ -100,6 +110,9 @@ func TestMachinePoolBootstrapValidation(t *testing.T) {
 }
 
 func TestMachinePoolNamespaceValidation(t *testing.T) {
+	// NOTE: MachinePool feature flag is disabled by default, thus preventing to create or update MachinePool.
+	// Enabling the feature flag temporarily for this test.
+	defer utilfeature.SetFeatureGateDuringTest(t, feature.Gates, feature.MachinePool, true)()
 	tests := []struct {
 		name      string
 		expectErr bool
@@ -165,6 +178,9 @@ func TestMachinePoolNamespaceValidation(t *testing.T) {
 }
 
 func TestMachinePoolClusterNameImmutable(t *testing.T) {
+	// NOTE: MachinePool feature flag is disabled by default, thus preventing to create or update MachinePool.
+	// Enabling the feature flag temporarily for this test.
+	defer utilfeature.SetFeatureGateDuringTest(t, feature.Gates, feature.MachinePool, true)()
 	tests := []struct {
 		name           string
 		oldClusterName string
