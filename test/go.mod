@@ -21,18 +21,18 @@ require (
 	github.com/vincent-petithory/dataurl v1.0.0
 	go.etcd.io/etcd/api/v3 v3.5.14
 	go.etcd.io/etcd/client/v3 v3.5.14
-	golang.org/x/net v0.25.0
-	google.golang.org/grpc v1.62.1
-	k8s.io/api v0.30.1
-	k8s.io/apiextensions-apiserver v0.30.1
-	k8s.io/apimachinery v0.30.1
-	k8s.io/apiserver v0.30.1
-	k8s.io/client-go v0.30.1
-	k8s.io/component-base v0.30.1
+	golang.org/x/net v0.27.0
+	google.golang.org/grpc v1.62.2
+	k8s.io/api v0.30.2
+	k8s.io/apiextensions-apiserver v0.30.2
+	k8s.io/apimachinery v0.30.2
+	k8s.io/apiserver v0.30.2
+	k8s.io/client-go v0.30.2
+	k8s.io/component-base v0.30.2
 	k8s.io/klog/v2 v2.120.1
 	k8s.io/utils v0.0.0-20231127182322-b307cd553661
 	sigs.k8s.io/cluster-api v0.0.0-00010101000000-000000000000
-	sigs.k8s.io/controller-runtime v0.18.3
+	sigs.k8s.io/controller-runtime v0.18.4
 	sigs.k8s.io/kind v0.23.0
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -47,7 +47,7 @@ require (
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
-	github.com/adrg/xdg v0.4.0 // indirect
+	github.com/adrg/xdg v0.5.0 // indirect
 	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df // indirect
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a // indirect
@@ -132,7 +132,7 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
-	github.com/spf13/cobra v1.8.0 // indirect
+	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
@@ -152,15 +152,15 @@ require (
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/oauth2 v0.20.0 // indirect
+	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/term v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/term v0.22.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.21.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240311132316-a219d84964c2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect
@@ -170,10 +170,10 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.4.0 // indirect
-	k8s.io/cli-runtime v0.30.1 // indirect
-	k8s.io/cluster-bootstrap v0.30.1 // indirect
+	k8s.io/cli-runtime v0.30.2 // indirect
+	k8s.io/cluster-bootstrap v0.30.2 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
-	k8s.io/kubectl v0.30.1 // indirect
+	k8s.io/kubectl v0.30.2 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.30.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.13.5-0.20230601165947-6ce0bf390ce3 // indirect
