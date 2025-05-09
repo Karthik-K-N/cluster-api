@@ -57,6 +57,9 @@ type CreateKindBootstrapClusterAndLoadImagesInput struct {
 
 	// ExtraPortMappings specifies the port forward configuration of the kind node.
 	ExtraPortMappings []kindv1.PortMapping
+
+	// CustomKindImageName is custom kind image name to use in cluster.
+	CustomKindImageName string
 }
 
 // CreateKindBootstrapClusterAndLoadImages returns a new Kubernetes cluster with pre-loaded images.
@@ -89,6 +92,10 @@ func CreateKindBootstrapClusterAndLoadImages(ctx context.Context, input CreateKi
 	if input.LogFolder != "" {
 		options = append(options, LogFolder(input.LogFolder))
 	}
+	if input.CustomKindImageName != "" {
+		options = append(options, WithNodeImage(input.CustomKindImageName))
+	}
+
 	options = append(options, WithExtraPortMappings(input.ExtraPortMappings))
 
 	clusterProvider := NewKindClusterProvider(input.Name, options...)
