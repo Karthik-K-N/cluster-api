@@ -18,144 +18,17 @@ package v1beta1
 
 import (
 	"maps"
-	"reflect"
 	"slices"
 	"sort"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiconversion "k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/utils/ptr"
-	"sigs.k8s.io/controller-runtime/pkg/conversion"
 
 	clusterv1beta1 "sigs.k8s.io/cluster-api/api/core/v1beta1"
 	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 	infrav1 "sigs.k8s.io/cluster-api/test/infrastructure/docker/api/v1beta2"
-	conversionutil "sigs.k8s.io/cluster-api/util/conversion"
 )
-
-func (src *DevCluster) ConvertTo(dstRaw conversion.Hub) error {
-	dst := dstRaw.(*infrav1.DevCluster)
-
-	if err := Convert_v1beta1_DevCluster_To_v1beta2_DevCluster(src, dst, nil); err != nil {
-		return err
-	}
-
-	// Manually restore data.
-	restored := &infrav1.DevCluster{}
-	ok, err := conversionutil.UnmarshalData(src, restored)
-	if err != nil {
-		return err
-	}
-
-	// Recover intent for bool values converted to *bool.
-	initialization := infrav1.DevClusterInitializationStatus{}
-	restoredDevClusterProvisioned := restored.Status.Initialization.Provisioned
-	clusterv1.Convert_bool_To_Pointer_bool(src.Status.Ready, ok, restoredDevClusterProvisioned, &initialization.Provisioned)
-	if !reflect.DeepEqual(initialization, infrav1.DevClusterInitializationStatus{}) {
-		dst.Status.Initialization = initialization
-	}
-
-	return nil
-}
-
-func (dst *DevCluster) ConvertFrom(srcRaw conversion.Hub) error {
-	src := srcRaw.(*infrav1.DevCluster)
-
-	if err := Convert_v1beta2_DevCluster_To_v1beta1_DevCluster(src, dst, nil); err != nil {
-		return err
-	}
-
-	return conversionutil.MarshalDataUnsafeNoCopy(src, dst)
-}
-
-func (src *DevClusterTemplate) ConvertTo(dstRaw conversion.Hub) error {
-	dst := dstRaw.(*infrav1.DevClusterTemplate)
-
-	return Convert_v1beta1_DevClusterTemplate_To_v1beta2_DevClusterTemplate(src, dst, nil)
-}
-
-func (dst *DevClusterTemplate) ConvertFrom(srcRaw conversion.Hub) error {
-	src := srcRaw.(*infrav1.DevClusterTemplate)
-
-	return Convert_v1beta2_DevClusterTemplate_To_v1beta1_DevClusterTemplate(src, dst, nil)
-}
-
-func (src *DevMachine) ConvertTo(dstRaw conversion.Hub) error {
-	dst := dstRaw.(*infrav1.DevMachine)
-
-	if err := Convert_v1beta1_DevMachine_To_v1beta2_DevMachine(src, dst, nil); err != nil {
-		return err
-	}
-
-	// Manually restore data.
-	restored := &infrav1.DevMachine{}
-	ok, err := conversionutil.UnmarshalData(src, restored)
-	if err != nil {
-		return err
-	}
-
-	// Recover intent for bool values converted to *bool.
-	initialization := infrav1.DevMachineInitializationStatus{}
-	restoredDevMachineProvisioned := restored.Status.Initialization.Provisioned
-	clusterv1.Convert_bool_To_Pointer_bool(src.Status.Ready, ok, restoredDevMachineProvisioned, &initialization.Provisioned)
-	if !reflect.DeepEqual(initialization, infrav1.DevMachineInitializationStatus{}) {
-		dst.Status.Initialization = initialization
-	}
-
-	if ok {
-		dst.Status.FailureDomain = restored.Status.FailureDomain
-	}
-	return nil
-}
-
-func (dst *DevMachine) ConvertFrom(srcRaw conversion.Hub) error {
-	src := srcRaw.(*infrav1.DevMachine)
-
-	if err := Convert_v1beta2_DevMachine_To_v1beta1_DevMachine(src, dst, nil); err != nil {
-		return err
-	}
-
-	if dst.Spec.ProviderID != nil && *dst.Spec.ProviderID == "" {
-		dst.Spec.ProviderID = nil
-	}
-
-	return conversionutil.MarshalDataUnsafeNoCopy(src, dst)
-}
-
-func (src *DevMachineTemplate) ConvertTo(dstRaw conversion.Hub) error {
-	dst := dstRaw.(*infrav1.DevMachineTemplate)
-
-	if err := Convert_v1beta1_DevMachineTemplate_To_v1beta2_DevMachineTemplate(src, dst, nil); err != nil {
-		return err
-	}
-
-	// Manually restore data.
-	restored := &infrav1.DevMachineTemplate{}
-	ok, err := conversionutil.UnmarshalData(src, restored)
-	if err != nil {
-		return err
-	}
-
-	if ok {
-		dst.Status = restored.Status
-	}
-
-	return nil
-}
-
-func (dst *DevMachineTemplate) ConvertFrom(srcRaw conversion.Hub) error {
-	src := srcRaw.(*infrav1.DevMachineTemplate)
-
-	if err := Convert_v1beta2_DevMachineTemplate_To_v1beta1_DevMachineTemplate(src, dst, nil); err != nil {
-		return err
-	}
-
-	if dst.Spec.Template.Spec.ProviderID != nil && *dst.Spec.Template.Spec.ProviderID == "" {
-		dst.Spec.Template.Spec.ProviderID = nil
-	}
-
-	return conversionutil.MarshalDataUnsafeNoCopy(src, dst)
-}
 
 func Convert_v1beta1_ObjectMeta_To_v1beta2_ObjectMeta(in *clusterv1beta1.ObjectMeta, out *clusterv1.ObjectMeta, s apiconversion.Scope) error {
 	return clusterv1beta1.Convert_v1beta1_ObjectMeta_To_v1beta2_ObjectMeta(in, out, s)

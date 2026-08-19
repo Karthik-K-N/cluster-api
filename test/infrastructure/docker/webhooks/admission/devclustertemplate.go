@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/cluster-api/feature"
 	"sigs.k8s.io/cluster-api/internal/util/compare"
 	infrav1 "sigs.k8s.io/cluster-api/test/infrastructure/docker/api/v1beta2"
+	infraconversion "sigs.k8s.io/cluster-api/test/infrastructure/docker/webhooks/conversion"
 )
 
 // DevClusterTemplate implements a validating and defaulting webhook for DevClusterTemplate.
@@ -38,6 +39,7 @@ func (webhook *DevClusterTemplate) SetupWebhookWithManager(mgr ctrl.Manager) err
 	return ctrl.NewWebhookManagedBy(mgr, &infrav1.DevClusterTemplate{}).
 		WithDefaulter(webhook).
 		WithValidator(webhook).
+		WithConverter(infraconversion.DevClusterTemplate).
 		Complete()
 }
 

@@ -32,9 +32,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/selection"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
@@ -45,7 +43,6 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -60,6 +57,7 @@ import (
 	infrav1beta1 "sigs.k8s.io/cluster-api/test/infrastructure/docker/api/v1beta1"
 	infrav1 "sigs.k8s.io/cluster-api/test/infrastructure/docker/api/v1beta2"
 	"sigs.k8s.io/cluster-api/test/infrastructure/docker/reconcilers"
+	"sigs.k8s.io/cluster-api/test/infrastructure/docker/setup"
 	infrawebhooks "sigs.k8s.io/cluster-api/test/infrastructure/docker/webhooks/admission"
 	cloudv1 "sigs.k8s.io/cluster-api/test/infrastructure/inmemory/pkg/cloud/api/v1alpha1"
 	inmemoryruntime "sigs.k8s.io/cluster-api/test/infrastructure/inmemory/pkg/runtime"
@@ -253,19 +251,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	var watchNamespaces map[string]cache.Config
-	if watchNamespace != "" {
-		watchNamespaces = map[string]cache.Config{
-			watchNamespace: {},
-		}
-	}
-
 	if enableContentionProfiling {
 		goruntime.SetBlockProfileRate(1)
 	}
-
-	req, _ := labels.NewRequirement(clusterv1.ClusterNameLabel, selection.Exists, nil)
-	clusterSecretCacheSelector := labels.NewSelector().Add(*req)
 
 	ctrlOptions := ctrl.Options{
 		Controller: config.Controller{
@@ -284,28 +272,8 @@ func main() {
 		HealthProbeBindAddress:     healthAddr,
 		PprofBindAddress:           profilerAddress,
 		Metrics:                    *metricsOptions,
-		Cache: cache.Options{
-			DefaultNamespaces: watchNamespaces,
-			SyncPeriod:        &syncPeriod,
-			ByObject: map[client.Object]cache.ByObject{
-				// Note: Only Secrets with the cluster name label are cached.
-				// The default client of the manager won't use the cache for secrets at all (see Client.Cache.DisableFor).
-				// The cached secrets will only be used by the secretCachingClient we create below.
-				&corev1.Secret{}: {
-					Label: clusterSecretCacheSelector,
-				},
-			},
-		},
-		Client: client.Options{
-			Cache: &client.CacheOptions{
-				DisableFor: []client.Object{
-					&corev1.ConfigMap{},
-					&corev1.Secret{},
-				},
-				// Use the cache for all Unstructured get/list calls.
-				Unstructured: true,
-			},
-		},
+		Cache:                      setup.ManagerCacheOptions(scheme, controllerName, watchNamespace, syncPeriod),
+		Client:                     setup.ManagerClientOptions(),
 		WebhookServer: webhook.NewServer(
 			webhook.Options{
 				Port:     webhookPort,
@@ -350,12 +318,7 @@ func setupChecks(mgr ctrl.Manager) {
 }
 
 func setupReconcilers(ctx context.Context, mgr ctrl.Manager) {
-	secretCachingClient, err := client.New(mgr.GetConfig(), client.Options{
-		HTTPClient: mgr.GetHTTPClient(),
-		Cache: &client.CacheOptions{
-			Reader: mgr.GetCache(),
-		},
-	})
+	secretCachingClient, err := setup.CreateSecretCachingClient(mgr)
 	if err != nil {
 		setupLog.Error(err, "Unable to create secret caching client")
 		os.Exit(1)
@@ -369,20 +332,9 @@ func setupReconcilers(ctx context.Context, mgr ctrl.Manager) {
 	}
 
 	clusterCache, err := clustercache.SetupWithManager(ctx, mgr, clustercache.Options{
-		SecretClient: secretCachingClient,
-		Cache:        clustercache.CacheOptions{},
-		Client: clustercache.ClientOptions{
-			QPS:       clusterCacheClientQPS,
-			Burst:     clusterCacheClientBurst,
-			UserAgent: remote.DefaultClusterAPIUserAgent(controllerName),
-			Cache: clustercache.ClientCacheOptions{
-				DisableFor: []client.Object{
-					// Don't cache ConfigMaps & Secrets.
-					&corev1.ConfigMap{},
-					&corev1.Secret{},
-				},
-			},
-		},
+		SecretClient:     secretCachingClient,
+		Cache:            setup.ClusterCacheCacheOptions(),
+		Client:           setup.ClusterCacheClientOptions(controllerName, clusterCacheClientQPS, clusterCacheClientBurst),
 		WatchFilterValue: watchFilterValue,
 	}, controller.Options{
 		MaxConcurrentReconciles: clusterCacheConcurrency,

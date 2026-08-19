@@ -27,6 +27,7 @@ import (
 
 	"sigs.k8s.io/cluster-api/internal/util/compare"
 	infrav1 "sigs.k8s.io/cluster-api/test/infrastructure/docker/api/v1beta2"
+	infraconversion "sigs.k8s.io/cluster-api/test/infrastructure/docker/webhooks/conversion"
 	"sigs.k8s.io/cluster-api/util/topology"
 )
 
@@ -39,6 +40,7 @@ func (webhook *DevMachineTemplate) SetupWebhookWithManager(mgr ctrl.Manager) err
 	return ctrl.NewWebhookManagedBy(mgr, &infrav1.DevMachineTemplate{}).
 		WithDefaulter(webhook).
 		WithValidator(webhook).
+		WithConverter(infraconversion.DevMachineTemplate).
 		Complete()
 }
 

@@ -1,7 +1,7 @@
 //go:build !race
 
 /*
-Copyright 2025 The Kubernetes Authors.
+Copyright 2026 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1beta1
+package conversion
 
 import (
 	"reflect"
@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/randfill"
 
 	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
+	infrav1beta1 "sigs.k8s.io/cluster-api/test/infrastructure/docker/api/v1beta1"
 	infrav1 "sigs.k8s.io/cluster-api/test/infrastructure/docker/api/v1beta2"
 	conversionutil "sigs.k8s.io/cluster-api/util/conversion"
 )
@@ -35,29 +36,37 @@ import (
 // Test is disabled when the race detector is enabled (via "//go:build !race" above) because otherwise the fuzz tests would just time out.
 
 func TestFuzzyConversion(t *testing.T) {
-	t.Run("for DevCluster", conversionutil.FuzzTestFunc(conversionutil.FuzzTestFuncInput{
-		Hub:         &infrav1.DevCluster{},
-		Spoke:       &DevCluster{},
-		FuzzerFuncs: []fuzzer.FuzzerFuncs{DevClusterFuzzFunc},
-	}))
+	t.Run("for DevCluster", conversionutil.SpokeConverterFuzzTestFunc(
+		conversionutil.SpokeConverterFuzzTestFuncInput[*infrav1.DevCluster, *infrav1beta1.DevCluster]{
+			ConvertSpokeToHubFunc: ConvertDevClusterV1Beta1ToHub,
+			ConvertHubToSpokeFunc: ConvertDevClusterHubToV1Beta1,
+			FuzzerFuncs:           []fuzzer.FuzzerFuncs{DevClusterFuzzFunc},
+		}),
+	)
 
-	t.Run("for DevClusterTemplate", conversionutil.FuzzTestFunc(conversionutil.FuzzTestFuncInput{
-		Hub:         &infrav1.DevClusterTemplate{},
-		Spoke:       &DevClusterTemplate{},
-		FuzzerFuncs: []fuzzer.FuzzerFuncs{DevClusterTemplateFuzzFunc},
-	}))
+	t.Run("for DevClusterTemplate", conversionutil.SpokeConverterFuzzTestFunc(
+		conversionutil.SpokeConverterFuzzTestFuncInput[*infrav1.DevClusterTemplate, *infrav1beta1.DevClusterTemplate]{
+			ConvertSpokeToHubFunc: ConvertDevClusterTemplateV1Beta1ToHub,
+			ConvertHubToSpokeFunc: ConvertDevClusterTemplateHubToV1Beta1,
+			FuzzerFuncs:           []fuzzer.FuzzerFuncs{DevClusterTemplateFuzzFunc},
+		}),
+	)
 
-	t.Run("for DevMachine", conversionutil.FuzzTestFunc(conversionutil.FuzzTestFuncInput{
-		Hub:         &infrav1.DevMachine{},
-		Spoke:       &DevMachine{},
-		FuzzerFuncs: []fuzzer.FuzzerFuncs{DevMachineFuzzFunc},
-	}))
+	t.Run("for DevMachine", conversionutil.SpokeConverterFuzzTestFunc(
+		conversionutil.SpokeConverterFuzzTestFuncInput[*infrav1.DevMachine, *infrav1beta1.DevMachine]{
+			ConvertSpokeToHubFunc: ConvertDevMachineV1Beta1ToHub,
+			ConvertHubToSpokeFunc: ConvertDevMachineHubToV1Beta1,
+			FuzzerFuncs:           []fuzzer.FuzzerFuncs{DevMachineFuzzFunc},
+		}),
+	)
 
-	t.Run("for DevMachineTemplate", conversionutil.FuzzTestFunc(conversionutil.FuzzTestFuncInput{
-		Hub:         &infrav1.DevMachineTemplate{},
-		Spoke:       &DevMachineTemplate{},
-		FuzzerFuncs: []fuzzer.FuzzerFuncs{DevMachineTemplateFuzzFunc},
-	}))
+	t.Run("for DevMachineTemplate", conversionutil.SpokeConverterFuzzTestFunc(
+		conversionutil.SpokeConverterFuzzTestFuncInput[*infrav1.DevMachineTemplate, *infrav1beta1.DevMachineTemplate]{
+			ConvertSpokeToHubFunc: ConvertDevMachineTemplateV1Beta1ToHub,
+			ConvertHubToSpokeFunc: ConvertDevMachineTemplateHubToV1Beta1,
+			FuzzerFuncs:           []fuzzer.FuzzerFuncs{DevMachineTemplateFuzzFunc},
+		}),
+	)
 }
 
 func hubFailureDomain(in *clusterv1.FailureDomain, c randfill.Continue) {
@@ -68,6 +77,7 @@ func hubFailureDomain(in *clusterv1.FailureDomain, c randfill.Continue) {
 	}
 }
 
+// DevClusterFuzzFunc returns fuzzer funcs for DevCluster conversion.
 func DevClusterFuzzFunc(_ runtimeserializer.CodecFactory) []any {
 	return []any{
 		hubDevClusterStatus,
@@ -86,23 +96,25 @@ func hubDevClusterStatus(in *infrav1.DevClusterStatus, c randfill.Continue) {
 	}
 }
 
-func spokeDevClusterStatus(in *DevClusterStatus, c randfill.Continue) {
+func spokeDevClusterStatus(in *infrav1beta1.DevClusterStatus, c randfill.Continue) {
 	c.FillNoCustom(in)
 
 	// Drop empty structs with only omit empty fields.
 	if in.V1Beta2 != nil {
-		if reflect.DeepEqual(in.V1Beta2, &DevClusterV1Beta2Status{}) {
+		if reflect.DeepEqual(in.V1Beta2, &infrav1beta1.DevClusterV1Beta2Status{}) {
 			in.V1Beta2 = nil
 		}
 	}
 }
 
+// DevClusterTemplateFuzzFunc returns fuzzer funcs for DevClusterTemplate conversion.
 func DevClusterTemplateFuzzFunc(_ runtimeserializer.CodecFactory) []any {
 	return []any{
 		hubFailureDomain,
 	}
 }
 
+// DevMachineFuzzFunc returns fuzzer funcs for DevMachine conversion.
 func DevMachineFuzzFunc(_ runtimeserializer.CodecFactory) []any {
 	return []any{
 		hubDevMachineStatus,
@@ -121,7 +133,7 @@ func hubDevMachineStatus(in *infrav1.DevMachineStatus, c randfill.Continue) {
 	}
 }
 
-func spokeDevMachineSpec(in *DevMachineSpec, c randfill.Continue) {
+func spokeDevMachineSpec(in *infrav1beta1.DevMachineSpec, c randfill.Continue) {
 	c.FillNoCustom(in)
 
 	if in.ProviderID != nil && *in.ProviderID == "" {
@@ -129,17 +141,18 @@ func spokeDevMachineSpec(in *DevMachineSpec, c randfill.Continue) {
 	}
 }
 
-func spokeDevMachineStatus(in *DevMachineStatus, c randfill.Continue) {
+func spokeDevMachineStatus(in *infrav1beta1.DevMachineStatus, c randfill.Continue) {
 	c.FillNoCustom(in)
 
 	// Drop empty structs with only omit empty fields.
 	if in.V1Beta2 != nil {
-		if reflect.DeepEqual(in.V1Beta2, &DevMachineV1Beta2Status{}) {
+		if reflect.DeepEqual(in.V1Beta2, &infrav1beta1.DevMachineV1Beta2Status{}) {
 			in.V1Beta2 = nil
 		}
 	}
 }
 
+// DevMachineTemplateFuzzFunc returns fuzzer funcs for DevMachineTemplate conversion.
 func DevMachineTemplateFuzzFunc(_ runtimeserializer.CodecFactory) []any {
 	return []any{
 		spokeDevMachineSpec,

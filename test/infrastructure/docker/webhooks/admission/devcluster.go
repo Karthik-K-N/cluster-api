@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	infrav1 "sigs.k8s.io/cluster-api/test/infrastructure/docker/api/v1beta2"
+	infraconversion "sigs.k8s.io/cluster-api/test/infrastructure/docker/webhooks/conversion"
 )
 
 // DevCluster implements a validating and defaulting webhook for DevCluster.
@@ -38,6 +39,7 @@ func (webhook *DevCluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr, &infrav1.DevCluster{}).
 		WithDefaulter(webhook).
 		WithValidator(webhook).
+		WithConverter(infraconversion.DevCluster).
 		Complete()
 }
 
